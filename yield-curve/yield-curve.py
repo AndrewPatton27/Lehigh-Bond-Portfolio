@@ -9,8 +9,6 @@ from matplotlib import pyplot as plt
 load_dotenv()
 key = os.environ["FRED_API_KEY"]
 
-key = Path(".env").read_text().strip()
-
 def main():
     maturities = {
         "DGS1MO": 1/12, "DGS3MO": 1/4, "DGS6MO": 1/2,
