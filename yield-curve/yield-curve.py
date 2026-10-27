@@ -1,10 +1,13 @@
-import pandas as pd
-import requests
+import os
 from pathlib import Path
 
+import pandas as pd
+import requests
+from dotenv import load_dotenv
 from matplotlib import pyplot as plt
 
-key = Path("mykey.txt").read_text().strip()
+load_dotenv()
+key = os.environ["FRED_API_KEY"]
 
 def main():
     maturities = {
@@ -29,7 +32,7 @@ def main():
     plt.ylabel("Yield (%)")
     plt.title(f"US Treasury Yield Curve, {latest_date:%Y-%m-%d}")
     plt.grid(alpha=0.3)
-    plt.savefig("yield-curve/yield-curve.png")
+    plt.savefig(Path(__file__).with_name("yield-curve.png"))
     plt.show()
 
 

@@ -1,0 +1,39 @@
+# Private project context: never push
+tests/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies and builds
+node_modules/
+.expo/
+dist/
+dist-pages/
+web-build/
+.wrangler/
+supabase/.temp/
+*.log
+.DS_Store
+
+.claude/
+CLAUDE.md
+context/
+
+# Expo extras
+expo-env.d.ts
+.metro-health-check*
+*.tsbuildinfo
+/ios
+/android
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+
+.dev.vars*
+!.dev.vars.example
+.pgtmp/
