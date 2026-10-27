@@ -12,28 +12,28 @@ def main():
         "DGS1": 1, "DGS2": 2, "DGS3": 3, "DGS5": 5,
         "DGS7": 7, "DGS10": 10, "DGS20": 20, "DGS30": 30,
     }
+    durations = list(maturities.values())
 
-    curves = pd.concat([get_recent(s) for s in maturities], axis=1)
-    curves = curves.dropna().sort_index()
+    curves = pd.concat([get_recent(i) for i in maturities], axis=1)
+    curves = curves.dropna()
 
-    latest_date = curves.index[-1]
-    latest = curves.iloc[-1]
+    print(curves)
 
-    plt.figure(figsize=(9, 5))
-    plt.plot([maturities[s] for s in latest.index], latest.values, marker="o")
+    latest_date = curves.index[0]
+    latest: pd.Series = curves.iloc[0]
+
+    plt.plot(durations, latest.values, marker="o", markersize=3)
     plt.xscale("log")
-    plt.xticks(
-        [1/12, 0.25, 0.5, 1, 2, 3, 5, 7, 10, 20, 30],
-        ["1M", "3M", "6M", "1Y", "2Y", "3Y", "5Y", "7Y", "10Y", "20Y", "30Y"],
-    )
+    plt.xticks(durations, ("1M", "3M", "6M", "1Y", "2Y", "3Y", "5Y", "7Y", "10Y", "20Y", "30Y"))
     plt.xlabel("Maturity")
     plt.ylabel("Yield (%)")
     plt.title(f"US Treasury Yield Curve, {latest_date:%Y-%m-%d}")
     plt.grid(alpha=0.3)
+    plt.savefig("yield-curve/yield-curve.png")
     plt.show()
 
 
-def get_recent(series_id, n=10):
+def get_recent(series_id, n=10) -> pd.Series:
     r = requests.get(
         "https://api.stlouisfed.org/fred/series/observations",
         params={
@@ -44,11 +44,17 @@ def get_recent(series_id, n=10):
             "limit": n,
         },
     )
+
     r.raise_for_status()
-    df = pd.DataFrame(r.json()["observations"])
+
+    df: pd.DataFrame = pd.DataFrame(r.json()["observations"])
+
     df["date"] = pd.to_datetime(df["date"])
     df["value"] = pd.to_numeric(df["value"], errors="coerce")
-    return df.set_index("date")["value"].rename(series_id)
+
+    df = df.set_index("date")
+
+    return df["value"].rename(series_id)
 
 
 if __name__ == "__main__":
