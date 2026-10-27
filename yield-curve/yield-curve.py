@@ -1,10 +1,9 @@
 import pandas as pd
 import requests
 from pathlib import Path
-
 from matplotlib import pyplot as plt
 
-key = Path("mykey.txt").read_text().strip()
+key = Path(".env").read_text().strip()
 
 def main():
     maturities = {
