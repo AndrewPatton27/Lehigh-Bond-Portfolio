@@ -1,13 +1,12 @@
 import os
 from pathlib import Path
-
 import pandas as pd
-import requests
 from dotenv import load_dotenv
 from matplotlib import pyplot as plt
+from bond_functions import get_recent
 
 load_dotenv()
-key = os.environ["FRED_API_KEY"]
+api_key = os.environ["FRED_API_KEY"]
 
 def main():
     maturities = {
@@ -17,13 +16,13 @@ def main():
     }
     durations = list(maturities.values())
 
-    curves = pd.concat([get_recent(i) for i in maturities], axis=1)
+    curves = pd.concat([get_recent(i, api_key, 10, False) for i in maturities], axis=1)
     curves = curves.dropna()
 
     print(curves)
 
-    latest_date = curves.index[0]
-    latest: pd.Series = curves.iloc[0]
+    latest_date = curves.index.max()
+    latest: pd.Series = curves.loc[latest_date]
 
     plt.plot(durations, latest.values, marker="o", markersize=3)
     plt.xscale("log")
@@ -34,30 +33,6 @@ def main():
     plt.grid(alpha=0.3)
     plt.savefig(Path(__file__).with_name("yield-curve.png"))
     plt.show()
-
-
-def get_recent(series_id, n=10) -> pd.Series:
-    r = requests.get(
-        "https://api.stlouisfed.org/fred/series/observations",
-        params={
-            "series_id": series_id,
-            "api_key": key,
-            "file_type": "json",
-            "sort_order": "desc",
-            "limit": n,
-        },
-    )
-
-    r.raise_for_status()
-
-    df: pd.DataFrame = pd.DataFrame(r.json()["observations"])
-
-    df["date"] = pd.to_datetime(df["date"])
-    df["value"] = pd.to_numeric(df["value"], errors="coerce")
-
-    df = df.set_index("date")
-
-    return df["value"].rename(series_id)
 
 
 if __name__ == "__main__":

@@ -1,33 +1,19 @@
 import os
 import pandas as pd
 from dotenv import load_dotenv
-from requests import get
+from bond_functions import get_recent
 
 load_dotenv()
 api_key = os.environ["FRED_API_KEY"]
 
 def main():
-    series_id = "BAMLC0A0CM"
+    series_ids = "BAMLC0A1CAAA", "BAMLC0A2CAA", "BAMLC0A3CA", "BAMLC0A4CBBB", "BAMLC0A0CM"
 
-    r = get(
-        "https://api.stlouisfed.org/fred/series/observations",
-        {
-            "series_id": series_id,
-            "api_key": api_key,
-            "file_type": "json",
-        }
-    )
+    curves = pd.concat([get_recent(i, api_key) for i in series_ids], axis=1)
+    curves = curves.dropna()
 
-    r.raise_for_status()
-
-    df: pd.DataFrame = pd.DataFrame(r.json()["observations"])
-
-    df["date"] = pd.to_datetime(df["date"])
-    df["value"] = pd.to_numeric(df["value"], errors="coerce")
-    df = df.set_index("date")
-    series: pd.Series = df["value"].rename("Investment grade")
-
-    print(series)
+    print(type(curves))
+    print(curves)
 
 if __name__ == '__main__':
     main()
