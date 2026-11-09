@@ -1,7 +1,8 @@
 import requests
 import pandas as pd
 
-def get_recent(series_id: str, api_key: str, n: int=0, change_name=True) -> pd.Series:
+
+def get_recent(series_id: str, api_key: str, n: int = 0, change_name: bool = True) -> pd.Series:
     params: dict = {
         "series_id": series_id,
         "api_key": api_key,
@@ -34,3 +35,8 @@ def get_recent(series_id: str, api_key: str, n: int=0, change_name=True) -> pd.S
         series_name = series_id
 
     return df["value"].rename(series_name)
+
+
+# dollar gain/loss when yields move one basis point
+def dv01(market_value: float | int, duration):
+    return market_value * duration * 0.0001  # 0.0001 is 1 basis point
