@@ -38,5 +38,18 @@ def get_recent(series_id: str, api_key: str, n: int = 0, change_name: bool = Tru
 
 
 # dollar gain/loss when yields move one basis point
-def dv01(market_value: float | int, duration):
-    return market_value * duration * 0.0001  # 0.0001 is 1 basis point
+def dv01(market_value: float, duration: float) -> float:
+    return market_value * duration * 0.0001  # 0.0001 (0.01%) is 1 basis point
+
+
+def bond_price(
+    face_value: float,
+    coupon_rate: float,
+    years_to_maturity: int,
+    discount_rate: float,
+) -> float:
+    npv = 0.0
+    for i in range(1, years_to_maturity + 1):
+        npv += face_value * coupon_rate / (1 + discount_rate) ** i
+    npv += face_value / (1 + discount_rate) ** years_to_maturity
+    return npv
