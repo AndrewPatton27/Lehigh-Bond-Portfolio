@@ -45,10 +45,10 @@ def dv01(market_value: float, duration: float) -> float:
 
 
 def cash_flow_generator(
-    face_value: float,
-    coupon_rate: float,
+    face_value: float | int,
+    coupon_rate: float | int,
     years_to_maturity: int,
-) -> Iterator[tuple[float, int]]:
+) -> Iterator[tuple[float | int, int]]:
     year = 0
     while year < years_to_maturity:
         year += 1
@@ -56,15 +56,15 @@ def cash_flow_generator(
     yield face_value, year
 
 
+# Assumes one cash flow per year, at the end of the year
 def bond_price(
-    face_value: float,
-    coupon_rate: float,
+    face_value: float | int,
+    coupon_rate: float | int,
     years_to_maturity: int,
-    discount_rate: float,
-) -> float:
-    npv = 0
-    for cash_flow, year in cash_flow_generator(
-        face_value, coupon_rate, years_to_maturity
-    ):
-        npv += cash_flow / (1 + discount_rate) ** year
-    return npv
+    discount_rate: float | int,
+) -> float | int:
+    if type(coupon_rate) is int or type(discount_rate) is int:
+        raise TypeError("Rates must be percent")
+
+    # first index is the cash flow, second index is the year
+    return sum(i[0] / (1 + discount_rate) ** i[1] for i in cash_flow_generator(face_value, coupon_rate, years_to_maturity))
