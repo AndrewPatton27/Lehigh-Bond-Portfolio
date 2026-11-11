@@ -1,3 +1,5 @@
+from collections.abc import Iterator
+
 import requests
 import pandas as pd
 
@@ -42,14 +44,27 @@ def dv01(market_value: float, duration: float) -> float:
     return market_value * duration * 0.0001  # 0.0001 (0.01%) is 1 basis point
 
 
+def cash_flow_generator(
+    face_value: float,
+    coupon_rate: float,
+    years_to_maturity: int,
+) -> Iterator[tuple[float, int]]:
+    year = 0
+    while year < years_to_maturity:
+        year += 1
+        yield face_value * coupon_rate, year
+    yield face_value, year
+
+
 def bond_price(
     face_value: float,
     coupon_rate: float,
     years_to_maturity: int,
     discount_rate: float,
 ) -> float:
-    npv = 0.0
-    for i in range(1, years_to_maturity + 1):
-        npv += face_value * coupon_rate / (1 + discount_rate) ** i
-    npv += face_value / (1 + discount_rate) ** years_to_maturity
+    npv = 0
+    for cash_flow, year in cash_flow_generator(
+        face_value, coupon_rate, years_to_maturity
+    ):
+        npv += cash_flow / (1 + discount_rate) ** year
     return npv
