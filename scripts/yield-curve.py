@@ -1,11 +1,10 @@
 from pathlib import Path
-
 import pandas as pd
 from matplotlib import pyplot as plt
 from fred.fred_api import get_latest
 
 def main() -> None:
-    """Plot the latest US Treasury yield curve and save the chart."""
+    # Plot the latest US Treasury yield curve and save the chart.
     maturities = {
         "DGS1MO": 1/12, "DGS3MO": 1/4, "DGS6MO": 1/2,
         "DGS1": 1, "DGS2": 2, "DGS3": 3, "DGS5": 5,
@@ -13,9 +12,10 @@ def main() -> None:
     }
     durations = list(maturities.values())
 
-    curves = pd.concat([get_latest(i, n=10) for i in maturities], axis=1)
+    curves: pd.DataFrame = pd.concat([get_latest(i, n=10) for i in maturities], axis=1)
     curves = curves.dropna()
 
+    print(type(curves))
     print(curves)
 
     latest_date = curves.index.max()
