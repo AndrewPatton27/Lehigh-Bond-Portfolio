@@ -1,18 +1,11 @@
-import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src" / "bondhedge"))
-import os
-from pathlib import Path
 import pandas as pd
-from dotenv import load_dotenv
 from matplotlib import pyplot as plt
-from bond_functions import get_recent
+from fred.fred_api import get_latest
 
-load_dotenv()
-api_key = os.environ["FRED_API_KEY"]
-
-def main():
+def main() -> None:
+    """Plot the latest US Treasury yield curve and save the chart."""
     maturities = {
         "DGS1MO": 1/12, "DGS3MO": 1/4, "DGS6MO": 1/2,
         "DGS1": 1, "DGS2": 2, "DGS3": 3, "DGS5": 5,
@@ -20,7 +13,7 @@ def main():
     }
     durations = list(maturities.values())
 
-    curves = pd.concat([get_recent(i, api_key, 10, False) for i in maturities], axis=1)
+    curves = pd.concat([get_latest(i, n=10) for i in maturities], axis=1)
     curves = curves.dropna()
 
     print(curves)
@@ -35,7 +28,9 @@ def main():
     plt.ylabel("Yield (%)")
     plt.title(f"US Treasury Yield Curve, {latest_date:%Y-%m-%d}")
     plt.grid(alpha=0.3)
-    plt.savefig(Path(__file__).resolve().parents[1] / "outputs" / "figures" / "yield-curve.png")
+    out_dir = Path(__file__).resolve().parents[1] / "outputs" / Path(__file__).stem
+    out_dir.mkdir(parents=True, exist_ok=True)
+    plt.savefig(out_dir / "yield-curve.png")
     plt.show()
 
 

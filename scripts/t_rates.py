@@ -1,5 +1,5 @@
 # Percent-format script (cells start with "# %%"): run it top to bottom with `python scripts/t_rates.py`,
-# or cell by cell in VS Code / Spyder / PyCharm. Converted from notebooks/t_rates.ipynb.
+# or cell by cell in VS Code / Spyder / PyCharm.
 
 # %% [markdown]
 # # Treasury rates and SOFR
@@ -8,26 +8,19 @@
 # align them by date, and save a CSV plus plots.
 #
 # If `SAVE_DATA = True` outputs:
+# (written to outputs/t_rates/)
 # - treasury_sofr.csv           columns: date, UST_5Y, UST_10Y, SOFR (percent)
 # - treasury_sofr_levels.png    all three series
 # - treasury_sofr_slope.png     10Y minus 5Y yield spread
-#
-# Task 1: Treasury rates
-# - Pull DGS5 and DGS10 (5- and 10-year Treasury yields) and SOFR (the short-term borrowing rate - affects fund's cost of leverage).
-# - Use FRED API (St. Louis Fed)
-# - Clean the data: drop missing days, align dates, save to CSV.
-# - Plot the 5-year and 10-year yields over the last 5–10 years, plus the 10Y − 5Y gap.
 
 # %%
 SAVE_DATA = True
 
-import sys
 from pathlib import Path
 
-# Get access to fred_api.py
+from fred.fred_api import clean_dataset, get_dataset, report_missing
+
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src" / "bondhedge"))
-from fred_api import clean_dataset, get_dataset, report_missing
 
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -49,7 +42,7 @@ START_DATE = "2018-04-03"
 END_DATE = None  # None = latest available
 FFILL = 0    # Number of days to interpulate
 
-OUTPUT_DIR = ROOT / "outputs" / "treasury_rates"
+OUTPUT_DIR = ROOT / "outputs" / Path(__file__).stem
 
 # %% [markdown]
 # ## 1. Fetch the three series and align them by date

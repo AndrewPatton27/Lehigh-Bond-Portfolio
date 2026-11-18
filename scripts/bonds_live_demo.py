@@ -1,12 +1,12 @@
 # Percent-format script (cells start with "# %%"): run it top to bottom with `python scripts/bonds_live_demo.py`,
-# or cell by cell in VS Code / Spyder / PyCharm. Converted from notebooks/Bonds.ipynb.
+# or cell by cell in VS Code / Spyder / PyCharm.
 
 # %% [markdown]
 # # Bonds in Quant Finance — Live Demo
 #
-# This notebook follows the talk step by step. Run each cell top to bottom (**Runtime → Run all** works too).
+# Run each cell top to bottom.
 #
-# Market inputs try to load live from FRED. If that fails, the notebook falls back to the levels quoted in the talk
+# Market inputs load live from FRED. If that fails, the notebook uses fallback levels.
 
 # %%
 import numpy as np
@@ -22,17 +22,18 @@ np.random.seed(42)
 # %% [markdown]
 # ### fred_latest(series_id, fallback)
 # Reads the series' public CSV from fred.stlouisfed.org (no API key needed) and returns `(latest value, its date, "FRED live")`.
-# On any error it returns `(fallback, "2026-10-09/12", "fallback (talk values)")`. Values are in percent, as FRED quotes them.
+# On any error it returns `(fallback, "2026-10-09/12", "fallback values")`. Values are in percent, as FRED quotes them.
 
 # %%
-def fred_latest(series_id, fallback):
+def fred_latest(series_id: str, fallback: float) -> tuple[float, str, str]:
+    """Return (latest value in percent, its date, source) for a FRED series, or the fallback."""
     url = f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series_id}"
     try:
         df = pd.read_csv(url, na_values=".")
         s = pd.to_numeric(df.iloc[:, 1], errors="coerce").dropna()
         return float(s.iloc[-1]), str(df.iloc[s.index[-1], 0]), "FRED live"
     except Exception:
-        return float(fallback), "2026-10-09/12", "fallback (talk values)"
+        return float(fallback), "2026-10-09/12", "fallback values"
 
 # %%
 market_inputs = {
@@ -61,15 +62,16 @@ mkt
 #
 # $$P = \sum_{t=1}^{n} \frac{C}{(1+y)^t} + \frac{F}{(1+y)^n}$$
 #
-# US bonds pay coupons twice a year, so we use half the coupon and half the yield each period.
+# Each period pays `coupon / freq` and discounts at `yield / freq`.
 #
-# ### bond_price(face, coupon_rate, years, ytm, freq=2)
-# - `coupon_rate` and `ytm` are decimals (0.05 = 5%). Note: `data_and_cash_flows` takes the coupon in percent.
+# ### bond_price(face, coupon_rate, years, ytm, freq=1)
+# - `coupon_rate` and `ytm` are decimals (0.05 = 5%).
 # - `years * freq` is rounded to whole periods, so it only prices bonds sitting on a coupon date.
 # - `ytm` can be one number or an array, which prices a whole grid of yields at once.
 
 # %%
-def bond_price(face, coupon_rate, years, ytm, freq=2):
+def bond_price(face: float, coupon_rate: float, years: float, ytm: float | np.ndarray, freq: int = 1) -> float | np.ndarray:
+    """Price a bond on a coupon date at one yield or at an array of yields."""
     n = int(round(years * freq))
     c = face * coupon_rate / freq
     t = np.arange(1, n + 1)
@@ -86,4 +88,9 @@ plt.plot(yields*100, bond_price(1000, 0.05, 10, yields), color=ORANGE, lw=2.5, l
 plt.axvline(5, color=GREY, ls="--"); plt.axhline(1000, color=GREY, ls="--")
 plt.xlabel("Market yield (%)"); plt.ylabel("Price ($)")
 plt.title("Yields v. Price")
-plt.legend(); plt.show()
+plt.legend()
+from pathlib import Path
+out_dir = Path(__file__).resolve().parents[1] / "outputs" / Path(__file__).stem
+out_dir.mkdir(parents=True, exist_ok=True)
+plt.savefig(out_dir / "price_vs_yield.png", dpi=150)
+plt.show()
