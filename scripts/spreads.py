@@ -9,9 +9,10 @@ def main() -> None:
     series_ids = "BAMLC0A1CAAA", "BAMLC0A2CAA", "BAMLC0A3CA", "BAMLC0A4CBBB", "BAMLC0A0CM"
 
     # name each column after the series title (what get_recent did) for the plot legend
-    curves = pd.concat([get_series(i).rename(get_series_info(i)["title"]) for i in series_ids], axis=1)
+    curves: pd.DataFrame = pd.concat([get_series(i).rename(get_series_info(i)["title"]) for i in series_ids], axis=1)
     curves = curves.dropna()
 
+    print(type(curves))
     print(curves)
 
     fig, ax = plt.subplots(layout="constrained")
