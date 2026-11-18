@@ -1,6 +1,5 @@
-tests/
-
 __pycache__/
+.pytest_cache/
 
 # Env
 .env
@@ -10,10 +9,5 @@ __pycache__/
 # Data
 *.csv
 
-*.log
-
-.claude/
-CLAUDE.md
-AGENTS.md
-context/
-graphify-out/
+tests/
+*.egg-info/
