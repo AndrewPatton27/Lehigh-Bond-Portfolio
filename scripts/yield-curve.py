@@ -11,6 +11,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src" / "bondhedge"
 load_dotenv()
 api_key = os.environ["FRED_API_KEY"]
 
+
+# noinspection DuplicatedCode
 def main():
     maturities = {
         "DGS1MO": 1/12, "DGS3MO": 1/4, "DGS6MO": 1/2,
@@ -19,7 +21,7 @@ def main():
     }
     durations = list(maturities.values())
 
-    curves = pd.concat([get_recent(i, api_key, 10, False) for i in maturities], axis=1)
+    curves: pd.DataFrame = pd.concat([get_recent(i, api_key, 10, False) for i in maturities], axis=1)
     curves = curves.dropna()
 
     print(curves)
