@@ -20,7 +20,7 @@ NUMBER_TYPES = (int, float, np.integer, np.floating)
 
 def cash_flows(
     coupon: float,
-    maturity: float | DateLike,
+    maturity,
     face: float | None = 100.0,
     today: DateLike | None = None,
     freq: int = 2,
@@ -80,8 +80,8 @@ def cash_flows(
 
     return pd.DataFrame({"years": times, "cash_flow": flows})
 
-def bond_value(
-    face_value: float, coupon_rate: float, years_to_maturity: float, discount_rate: float, freq: int = 2
+def bond_price(
+    face_value: float, coupon_rate: float, years: float, discount_rate: float, freq: int = 2
 ) -> float:
     """Value a bond from numbers.
 
@@ -90,7 +90,7 @@ def bond_value(
     Args:
         face_value: Face value of the position.
         coupon_rate: Annual coupon as a decimal (0.05 means 5%).
-        years_to_maturity: Years left, fractional allowed.
+        years: Years left, fractional allowed.
         discount_rate: Yield as a decimal. Compounds `freq` times a year.
         freq: Coupons per year. Defaults to 2.
 
@@ -103,7 +103,7 @@ def bond_value(
     """
     if isinstance(face_value, bool) or not isinstance(face_value, NUMBER_TYPES):
         raise TypeError(f"face_value must be a number, got {type(face_value).__name__}")
-    cf = cash_flows(coupon_rate, years_to_maturity, face=face_value, freq=freq)
+    cf = cash_flows(coupon_rate, years, face=face_value, freq=freq)
     return present_value(cf, discount_rate, compounding=freq)
 
 def bond_value_from_series(bond: pd.Series, discount_rate: float, today: DateLike | None = None, freq: int = 2) -> float:
@@ -121,12 +121,12 @@ def bond_value_from_series(bond: pd.Series, discount_rate: float, today: DateLik
     cf = cash_flows(bond["Coupon"], bond["Maturity Date"], today=today, freq=freq)
     return present_value(cf, discount_rate, compounding=freq)
 
-def present_value(cf: pd.DataFrame, ytm: float, compounding: int = 2) -> float:
+def present_value(cf: pd.DataFrame, yield_to_maturity: float, compounding: int = 2) -> float:
     """Discount cash flows to today and sum them: the bond's dirty price.
 
     Args:
         cf: DataFrame from cash_flows() with `years` and `cash_flow` columns.
-        ytm: Yield as a decimal (0.05 means 5%).
+        yield_to_maturity: Yield as a decimal (0.05 means 5%).
         compounding: Yield compounding per year (1 annual, 2 semiannual,
             4 quarterly, 12 monthly). This is separate from the coupon
             frequency set by cash_flows(freq=...).
@@ -143,9 +143,9 @@ def present_value(cf: pd.DataFrame, ytm: float, compounding: int = 2) -> float:
 
     if not isinstance(compounding, NUMBER_TYPES) or compounding <= 0:
         raise ValueError(f"compounding must be a positive number, got {compounding!r}")
-    if ytm <= -compounding:  # 1 + ytm / compounding would be 0 or less
-        raise ValueError(f"yield must be above -{compounding} for {compounding}x compounding, got {ytm!r}")
-    factors = (1 + ytm / compounding) ** (-compounding * t)
+    if yield_to_maturity <= -compounding:  # 1 + ytm / compounding would be 0 or less
+        raise ValueError(f"yield must be above -{compounding} for {compounding}x compounding, got {yield_to_maturity!r}")
+    factors = (1 + yield_to_maturity / compounding) ** (-compounding * t)
 
     return float((flows * factors).sum())
 
