@@ -3,7 +3,7 @@ from pathlib import Path
 import pandas as pd
 from dotenv import load_dotenv
 from matplotlib import pyplot as plt
-from bond_functions import get_recent
+from src.bond_functions import get_recent
 
 load_dotenv()
 api_key = os.environ["FRED_API_KEY"]
@@ -11,7 +11,10 @@ api_key = os.environ["FRED_API_KEY"]
 def main():
     series_ids = "BAMLC0A1CAAA", "BAMLC0A2CAA", "BAMLC0A3CA", "BAMLC0A4CBBB", "BAMLC0A0CM"
 
-    curves = pd.concat([get_recent(i, api_key) for i in series_ids], axis=1)
+    curves: pd.DataFrame = pd.concat([get_recent(i, api_key) for i in series_ids], axis=1)
+    if not isinstance(curves, pd.DataFrame):
+        raise TypeError()
+
     curves = curves.dropna()
 
     print(curves)

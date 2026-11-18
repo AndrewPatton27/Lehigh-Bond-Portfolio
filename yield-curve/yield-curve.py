@@ -3,7 +3,7 @@ from pathlib import Path
 import pandas as pd
 from dotenv import load_dotenv
 from matplotlib import pyplot as plt
-from bond_functions import get_recent
+from src.bond_functions import get_recent
 
 load_dotenv()
 api_key = os.environ["FRED_API_KEY"]

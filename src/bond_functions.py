@@ -2,7 +2,6 @@ from collections.abc import Iterator
 
 import requests
 import pandas as pd
-from scipy.optimize import brentq
 
 
 def _check(data: dict) -> dict:
@@ -51,46 +50,39 @@ def get_recent(series_id: str, api_key: str, n: int = 0, change_name: bool = Tru
     return df["value"].rename(series_name)
 
 
-# Assumes one cash flow per year, at the end of the year
-def bond_price(
-    face_value,
-    coupon_rate,
-    years_to_maturity,
-    discount_rate,
-):
-    def cash_flow_generator() -> Iterator[tuple[float | int, int]]:
-        year = 0
-        while year < years_to_maturity:
-            year += 1
-            yield face_value * coupon_rate, year
-        yield face_value, year
-
-    # first index is the cash flow, second index is the year
-    return sum(cash_flow / (1 + discount_rate) ** year for cash_flow, year in cash_flow_generator())
+def cash_flow_generator(years_to_maturity: int, face_value: int, coupon_rate: float | int) -> Iterator[tuple[float | int, int]]:
+    year = 0
+    while year < years_to_maturity:
+        year += 1
+        yield face_value * coupon_rate, year
+    yield face_value, year
 
 
-def ytm(price: float, coupon: float, years: int) -> float:
-    def price_difference(discount_rate: float) -> float:
-        return bond_price(100, coupon, years, discount_rate) - price
-
-    return brentq(price_difference, -0.9999, 100)
+def discounted_cash_flow(cash_flow: float | int, year: int, discount_rate: float | int) -> float | int:
+    return cash_flow / (1 + discount_rate) ** year
 
 
-def modified_duration(coupon: float, years: int, yield_to_maturity: float) -> float:
-    face_value = 100
-    price = bond_price(face_value, coupon, years, yield_to_maturity)
-
-    present_value_times_time = sum(
-        year * face_value * coupon / (1 + yield_to_maturity) ** year
-        for year in range(1, years + 1)
+def bond_price(face_value: int, coupon_rate: float | int, years_to_maturity: int, discount_rate: float | int) -> float | int:
+    return sum(
+        discounted_cash_flow(cash_flow, year, discount_rate)
+        for cash_flow, year in cash_flow_generator(
+            years_to_maturity,
+            face_value,
+            coupon_rate,
+        )
     )
-    present_value_times_time += years * face_value / (1 + yield_to_maturity) ** years
-
-    macaulay_duration = present_value_times_time / price
-    return macaulay_duration / (1 + yield_to_maturity)
 
 
-def dv01(coupon: float, years: int, yield_to_maturity: float, face: float) -> float:
-    price = bond_price(face, coupon, years, yield_to_maturity)
-    duration = modified_duration(coupon, years, yield_to_maturity)
-    return price * duration * 0.0001
+def duration(coupon_rate: float | int, face_value, years: int, discount_rate: float | int) -> float | int:
+    return sum(year * discounted_cash_flow(cash_flow, year, discount_rate) for cash_flow, year in
+               cash_flow_generator(years, face_value, coupon_rate))
+
+
+def modified_duration(face_value, coupon_rate: float | int, years: int, discount_rate: float | int) -> float | int:
+    price = bond_price(face_value, coupon_rate, years, discount_rate)
+    dur = duration(coupon_rate, face_value, years, discount_rate)
+    return dur / price / (1 + discount_rate)
+
+
+def dv01(price: float | int, dur) -> float | int:
+    return price * dur * 0.0001

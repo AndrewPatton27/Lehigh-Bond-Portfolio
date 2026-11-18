@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src" / "bondhedge"))
-from bond_functions import dv01, bond_price
+from src.bond_functions import dv01, bond_price
 
 
 def main():

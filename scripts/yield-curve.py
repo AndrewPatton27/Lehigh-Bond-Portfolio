@@ -1,13 +1,12 @@
 import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src" / "bondhedge"))
 import os
 from pathlib import Path
 import pandas as pd
 from dotenv import load_dotenv
 from matplotlib import pyplot as plt
-from bond_functions import get_recent
+from src.bond_functions import get_recent
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src" / "bondhedge"))
 
 load_dotenv()
 api_key = os.environ["FRED_API_KEY"]
