@@ -6,7 +6,7 @@ Setup:
     Put it in the repo root .env as:  FRED_API_KEY=your_key_here
 
 Usage:
-    from fred_api import get_series, get_dataset, report_missing, clean_dataset
+    from fred.fred_api import get_series, get_dataset, report_missing, clean_dataset
 
     ten_year = get_series("DGS10", start="2020-01-01")
     rates = get_dataset({"UST_5Y": "DGS5", "UST_10Y": "DGS10", "SOFR": "SOFR"})
@@ -61,7 +61,7 @@ def fred_get(endpoint: str, **params) -> dict:
     except ValueError:
         # Show what actually came back (never print the API key)
         raise FredError(
-            f"FRED returned invalid responce.\n  status: {resp.status_code}\n"
+            f"FRED returned invalid response.\n  status: {resp.status_code}\n"
             f"  content-type: {resp.headers.get('Content-Type')}\n"
             f"  body (first 300 chars): {resp.text[:300]!r}\n"
             f"  possible invalid key - FRED KEY len: {len(key)} (FRED keys are 32 chars)"
@@ -153,7 +153,7 @@ def drop_missing(data: pd.DataFrame, columns: list[str] | None = None) -> pd.Dat
 
 
 def clean_dataset(data: pd.DataFrame, fill_limit: int | None = 0) -> pd.DataFrame:
-    """Fill limit is how big of a gap in the data to fill before just dropping it"""
+    """Forward-fill gaps of up to `fill_limit` rows, then drop dates that are still missing."""
     return drop_missing(fill_gaps(data, fill_limit))
 
 
@@ -173,7 +173,6 @@ def search_series(text: str, limit: int = 5) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    # Example
     info = get_series_info("DGS10")
     print(f"{info['id']}: {info['title']} ({info['units_short']}, {info['frequency_short']})")
     print(get_latest("DGS10", n=5))
