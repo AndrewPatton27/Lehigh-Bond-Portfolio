@@ -15,7 +15,7 @@ class Portfolio:
         Args:
             bonds: The bonds to hold. Defaults to none.
         """
-        self.bonds: list[Bond] = list(bonds or [])
+        self.bonds: list[Bond] = list(bonds) if bonds is not None else []
 
     def add_table(self, table: pd.DataFrame, face: float = 100.0, freq: int = 2) -> None:
         """Add one Bond per row of load_bonds() to this portfolio.
